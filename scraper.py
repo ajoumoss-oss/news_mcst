@@ -13,21 +13,27 @@ NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
 
 def search_naver_news(query, display=100, start=1, sort='date'):
-    url = "https://openapi.naver.com/v1/search/news.json"
-    headers = {
-        "X-Naver-Client-Id": NAVER_CLIENT_ID,
-        "X-Naver-Client-Secret": NAVER_CLIENT_SECRET
-    }
-    params = {"query": query, "display": display, "start": start, "sort": sort}
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code == 200:
-        items = response.json().get('items', [])
-        # 초기 단계에서 인코딩 수정
-        for item in items:
-            item['title'] = html.unescape(item['title']).replace('<b>', '').replace('</b>', '')
-            item['description'] = html.unescape(item['description']).replace('<b>', '').replace('</b>', '')
-        return items
-    return []
+    try:
+        url = "https://openapi.naver.com/v1/search/news.json"
+        headers = {
+            "X-Naver-Client-Id": NAVER_CLIENT_ID,
+            "X-Naver-Client-Secret": NAVER_CLIENT_SECRET
+        }
+        params = {"query": query, "display": display, "start": start, "sort": sort}
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            items = response.json().get('items', [])
+            # 초기 단계에서 인코딩 수정
+            for item in items:
+                item['title'] = html.unescape(item['title']).replace('<b>', '').replace('</b>', '')
+                item['description'] = html.unescape(item['description']).replace('<b>', '').replace('</b>', '')
+            return items
+        else:
+            print(f"Naver API Error: {response.status_code} - {response.text}")
+            return []
+    except Exception as e:
+        print(f"Error in search_naver_news: {e}")
+        return []
 
 def extract_article_details(url):
     details = {"content": "", "reporter": "정보 없음", "company": "정보 없음", "mentions": ""}

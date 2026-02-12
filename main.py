@@ -123,4 +123,10 @@ def main():
         run_crawler(hours=24)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        print("CRITICAL ERROR IN MAIN:")
+        traceback.print_exc()
+        sys.exit(1)
