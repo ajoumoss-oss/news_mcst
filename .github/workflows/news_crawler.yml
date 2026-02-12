@@ -19,8 +19,7 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: check dir
-      run: ls -R
+
 
     - name: Install dependencies
       run: |
