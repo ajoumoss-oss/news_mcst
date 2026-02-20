@@ -123,6 +123,25 @@ def main():
         run_crawler(hours=24)
 
 if __name__ == "__main__":
+    # Debug: Check Environment Variables
+    print("=== Environment Variable Check ===")
+    import os
+    vars_to_check = [
+        "NAVER_CLIENT_ID",
+        "NAVER_CLIENT_SECRET",
+        "NOTION_TOKEN",
+        "NOTION_DATABASE_ID",
+        "GEMINI_API_KEY"
+    ]
+    for v in vars_to_check:
+        val = os.getenv(v)
+        if not val:
+            print(f"❌ {v}: MISSING or EMPTY")
+        else:
+            masked = val[:4] + "*" * (len(val) - 4) if len(val) > 4 else "****"
+            print(f"✅ {v}: LOADED ({masked})")
+    print("================================")
+
     try:
         main()
         sys.exit(0)

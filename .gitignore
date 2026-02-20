@@ -8,3 +8,6 @@ venv/
 
 # MacOS
 .DS_Store
+
+# Type 1 Diabetes Project (Separate Repo)
+news_type1/
