@@ -2,4 +2,5 @@ requests
 beautifulsoup4
 httpx
 python-dotenv
-google-genai
+google-genai>=0.3.0
+pandas

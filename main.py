@@ -61,45 +61,54 @@ def run_crawler(hours=24):
         
         print(f"[{i+1}/{len(recent_articles)}] 분석 중: {title[:30]}...")
         
-        # [중복 방지 1] 제목으로 Notion 중복 확인 (Exact Match)
-        if check_article_exists_by_title(title):
-            print(" -> 이미 Notion에 존재하는 기사(제목 중복)입니다. 건너뜁니다.")
-            count_skipped += 1
-            continue
-            
-        # [중복 방지 2] LLM 의미 기반 중복 확인 (Semantic Match)
-        is_duplicate, similar_title = llm_classifier.check_similarity(title, processed_titles)
-        if is_duplicate:
-            print(f" -> 유사한 기사가 이미 처리되었습니다. (유사 제목: {similar_title}) 건너뜁니다.")
-            count_skipped += 1
-            continue
+        try:
+            # [중복 방지 1] 제목으로 Notion 중복 확인 (Exact Match)
+            if check_article_exists_by_title(title):
+                print(" -> 이미 Notion에 존재하는 기사(제목 중복)입니다. 건너뜜")
+                count_skipped += 1
+                continue
+                
+            # [중복 방지 2] LLM 의미 기반 중복 확인 (Semantic Match)
+            is_duplicate, similar_title = llm_classifier.check_similarity(title, processed_titles)
+            if is_duplicate:
+                print(f" -> 유사 기사 존재 (유사 제목: {similar_title}) 건너뜜")
+                count_skipped += 1
+                continue
 
-        processed_titles.append(title) 
+            processed_titles.append(title) 
 
-        details = extract_article_details(link)
-        
-        if not is_relevant_article(a, content=details['content']):
-            print(" -> 관련 없는 기사로 판단되어 건너뜁니다.")
-            continue
+            details = extract_article_details(link)
             
-        # [분류]
-        category, news_type = classify_article_llm(title, details['content'])
-        
-        if not category or not news_type:
-            print(" -> LLM 분류 실패, 키워드 분류 시도...")
-            full_text = f"{title} {details['content']}"
-            category = classify_category_keyword(full_text)
-            news_type = classify_type_keyword(full_text)
-        
-        print(f" -> 분류: {category} / {news_type}")
-        
-        success = add_article_to_notion(
-            title=title, link=link, date=a['pubDate'], description=a['description'],
-            category=category, type=news_type, press=details['company'],
-            full_content=details['content'], mentions=details['mentions']
-        )
-        if success: count_new += 1
-        
+            if not is_relevant_article(a, content=details['content']):
+                print(" -> 관련 없는 기사 제외")
+                continue
+                
+            # [분류]
+            category, news_type = classify_article_llm(title, details['content'])
+            
+            if not category or not news_type:
+                print(" -> LLM 분류 실패, 키워드 분류 시도")
+                full_text = f"{title} {details['content']}"
+                category = classify_category_keyword(full_text)
+                news_type = classify_type_keyword(full_text)
+            
+            print(f" -> 분류: {category} / {news_type} ({details['company']})")
+            
+            success = add_article_to_notion(
+                title=title, link=link, date=a['pubDate'], description=a['description'],
+                category=category, type=news_type, press=details['company'],
+                full_content=details['content'], mentions=details['mentions']
+            )
+            if success: 
+                count_new += 1
+                print(" -> Notion 등록 성공")
+            else:
+                print(" -> Notion 등록 실패")
+        except Exception as inner_e:
+            print(f" -> [ERROR] 기사 처리 중 에러 발생: {inner_e}")
+            import traceback
+            traceback.print_exc()
+
         time.sleep(0.5)
             
     print(f"작업 완료! 신규: {count_new}개, 중복/건너뜀: {count_skipped}개")

@@ -1,4 +1,3 @@
-
 import os
 import json
 import time
@@ -61,10 +60,16 @@ Return ONLY a JSON object. Do not include markdown formatting (```json ... ```).
                     response_mime_type="application/json"
                 )
             )
+            if not response or not response.text:
+                print("LLM Classification Warning: Empty response from Gemini")
+                return None
+                
             text = response.text.replace("```json", "").replace("```", "").strip()
             return json.loads(text)
         except Exception as e:
             print(f"LLM Classification Error: {e}")
+            if hasattr(e, 'response'):
+                print(f"Response Details: {e.response}")
             return None
 
     def check_similarity(self, new_title, existing_summaries):
@@ -100,6 +105,9 @@ Return ONLY the result string.
                 model=self.model_name,
                 contents=prompt
             )
+            if not response or not response.text:
+                return False, None
+                
             result = response.text.strip()
             if result == "NEW":
                 return False, None
